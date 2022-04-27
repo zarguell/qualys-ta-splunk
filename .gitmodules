@@ -1,0 +1,3 @@
+[submodule "splunkbase-download"]
+	path = splunkbase-download
+	url = https://github.com/tfrederick74656/splunkbase-download
