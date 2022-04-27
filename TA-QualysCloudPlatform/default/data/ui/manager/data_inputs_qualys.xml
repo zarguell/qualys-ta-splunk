@@ -1,0 +1,113 @@
+<endpoint name="data/inputs/qualys">
+  <header>Qualys Data Inputs</header>
+  <breadcrumb>
+    <parent hidecurrent="False">datainputstats</parent>
+    <name i18ntag="">Qualys</name>
+  </breadcrumb>
+  <elements>
+    <element name="name" type="select" label="Qualys Metrics">
+          <view name="list"/>
+          <view name="create"/>
+          <key name="dynamicOptions" type="dict"></key>
+          <options>
+            <opt value="knowledge_base" label="knowledge_base"/>
+            <opt value="host_detection" label="host_detection"/>
+            <opt value="was_findings" label="was_findings" />
+			<opt value="policy_posture_info" label="policy_posture_info" />
+            <opt value="cs_image_vulns" label="cs_image_vulns" />
+			<opt value="cs_container_vulns" label="cs_container_vulns" />
+			<opt value="fim_events" label="fim_events" />
+            <opt value="fim_ignored_events" label="fim_ignored_events" />
+            <opt value="fim_incidents" label="fim_incidents" />
+            <opt value="edr_events" label="edr_events" />
+            <opt value="activity_log" label="activity_log" />
+            <opt value="sem_detection" label="sem_detection"/>
+            <opt value="pcrs_posture_info" label="pcrs_posture_info"/>
+          </options>
+    </element>
+    <element name="duration" label="Cron entry or Interval">
+      <view name="list"/>
+      <view name="edit"/>
+      <view name="create"/>
+      <key name="exampleText">This could be a cron format entry OR old style Interval between subsequent runs.
+	  &lt;br /&gt;&lt;br /&gt;
+	  If you upgraded from version 1.1.0, it is recommended to change this to cron format for more control.
+	  &lt;br /&gt;&lt;br /&gt;
+	  Old style intervals are still supported for backward-compatibility purpose. Old Format: *w*d*h*m*s, where * is any positive number. For example: 12h to run after 12 hours since last run. You can omit the letter if value is 0.
+	  &lt;br /&gt;&lt;br /&gt;
+	  Note - API rate limit according to your API tier will be applicable.</key>
+    </element>
+    <element name="start_date" type="textfield" label="Start Date">
+      <key name="exampleText">For fim_events, fim_ignored_events, and fim_incidents Qualys Metrics - date to start data pull from should be in UTC in ISO 8601 format: "YYYY-MM-DDThh:mm:ss.msZ". Ex: 2017-01-01T00:00:00.000Z
+	  &lt;br /&gt;&lt;br /&gt;
+	  For sem_detection Qualys Metrics - date to start data pull from should be in UTC in ISO 8601 format: "YYYY-MM-DDThh:mm:ssZ". Default value is "2021-01-26T00:00:00Z".
+	  &lt;br /&gt;&lt;br /&gt;
+	  For other Qualys Metrics - date to start data pull from should be in UTC in ISO 8601 format: "YYYY-MM-DDThh:mm:ssZ". Default value is "1999-01-01T00:00:00Z".
+	  &lt;br /&gt;&lt;br /&gt;
+	  For knowledge_base, 'Start Date' field is applicable only if 'Index the knowledge base' is enabled on the TA setup page.
+	  &lt;br /&gt;&lt;br /&gt;
+	  For host_detection, this value refers to the host scanned date. &lt;br /&gt;
+	  For was_findings, this value refers to the last tested date.&lt;br /&gt;
+	  For cs_image_vulns, this value refers to image scan date.</key>
+      <view name="list"/>
+      <view name="edit"/>
+      <view name="create"/>
+      <key name="processValueList">_('script') if (value==None or value=='') else value</key>
+      <key name="submitValueAdd">value if (value!=None and value.strip()!='') else '1999-01-01T00:00:00Z'</key>
+      <key name="submitValueEdit">value if (value!=None and value.strip()!='') else '1999-01-01T00:00:00Z'</key>
+    </element>
+
+<element name="spl-ctrl_EnableAdvanced" type="checkbox" label="More settings" class="spl-mgr-advanced-switch">
+     <view name="edit"/>
+     <view name="create"/>
+     <onChange>
+       <key name="_action">showonly</key>
+       <key name="0">NONE</key>
+       <key name="1">ALL</key>
+       <group_set>
+           <group name="advanced"/>
+       </group_set>
+     </onChange>
+     </element>
+     <element name="advanced" type="fieldset" class="spl-mgr-advanced-options">
+       <view name="edit"/>
+       <view name="create"/>
+       <elements>
+         <element name="hostFields" type="fieldset">
+           <key name="legend">Host</key>
+           <view name="list"/>
+           <view name="edit"/>
+           <view name="create"/>
+           <elements>
+             <element name="host" type="textfield" label="Host">
+               <view name="edit"/>
+               <view name="create"/>
+             </element>
+           </elements>
+         </element>
+         <element name="indexField" type="fieldset">
+           <key name="legend">Index</key>
+           <view name="list"/>
+           <view name="edit"/>
+           <view name="create"/>
+           <elements>
+             <element name="index" type="select" label="Index">
+               <view name="list"/>
+               <view name="edit"/>
+               <view name="create"/>
+               <key name="dynamicOptions" type="dict">
+                 <key name="keyName">title</key>
+                 <key name="keyValue">title</key>
+                 <key name="splunkSource">/data/indexes</key>
+                 <key name="splunkSourceParams" type="dict">
+                   <key name="search">'isInternal=false disabled=false'</key>
+                   <key name="count">-1</key>
+                 </key>
+               </key>
+             </element>
+         </elements>
+       </element>
+     </elements>
+   </element>
+  </elements>
+</endpoint>

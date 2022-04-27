@@ -1,0 +1,1 @@
+Files in this directory are transient and should get deleted after parsing of XML is done, if you see *old* files in these directories lying around for a long time, you can safely delete them.Empty directory to hold api output temporarily.

@@ -1,0 +1,32 @@
+table.mainSearchControlsTable .SearchBar .searchFieldWrapper {
+    border: 1px solid #c1c1c1;
+    background-color: #c1c1c1;
+
+    background: #c1c1c1; url(/en-US/static/@196940/img/skins/default/search_bar.png);
+}
+
+
+.SearchBar .assistantActivator {
+    background-color: #c1c1c1;;
+    background-image: url(/en-US/static/@196940/img/skins/default/overlay_gradient_28.png);
+    background-repeat: repeat-x;
+}
+
+
+input.searchButton {
+
+    background-image: url(/en-US/static/@196940/img/skins/default/search_button.png), -moz-linear-gradient(top, #65a637, #4e802a);
+    background-image: url(/en-US/static/@196940/img/skins/default/search_button.png), -o-linear-gradient(top, #65a637, #4e802a);
+    background-image: url(/en-US/static/@196940/img/skins/default/search_button.png), linear-gradient(to bottom, #65a637, #4e802a);
+    border: 1px solid #c1c1c1;;
+    border-bottom-color: #c1c1c1;;
+    border-top-color: #c1c1c1;;
+}
+
+
+.appLogo {
+    height: 36px;
+    width: 36px;
+    background-image: url(appLog.png);
+    background-repeat: no-repeat;
+}

@@ -1,0 +1,7 @@
+severity_id,vendor_severity,severity
+1,Minimal,informational
+2,Medium,low
+3,Serious,medium
+4,Critical,high
+5,Urgent,critical
+"",Unknown,unknown
