@@ -1,0 +1,207 @@
+* {
+  box-sizing: border-box;
+}
+
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  margin: 7px 0 5px;
+}
+
+input[type=password] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  margin: 7px 0 5px;
+}
+
+input[type=checkbox] {
+  margin: 7px 0 0;
+  line-height: normal;
+}
+
+label {
+  padding: 5px 12px 0 0;
+  display: inline-block;
+}
+
+h3 {
+  margin: 12px 0 3px 0;
+}
+
+input[type=submit] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 6px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+input[type=button] {
+  background-color: #e1e6eb;
+  color: black;
+  padding: 6px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+  margin-left: 20px;
+}
+
+input[type=button]:hover {
+  background-color: #e1e6eb;
+}
+
+.panel-body.html {
+  padding: 0px !important;
+}
+
+#main_container {
+  background-color: #f2f4f5;
+}
+
+.container {
+  border-radius: 5px;
+  background-color: #ffffff;
+  padding: 20px;
+}
+
+.col-25 {
+  float: left;
+  text-align: right;
+  width: 25%;
+  margin-top: 3px;
+}
+
+.col-75 {
+  float: left;
+  width: 75%;
+  margin-top: 1px;
+}
+
+.row {
+  margin-left: 0px;
+}
+
+.row_note {
+  margin-bottom: 10px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.row_note:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.container .error.output {
+    /* Used to set defaults for JQuery Fade In/Fade Out */
+    display: none;
+    opacity: 1;
+}
+
+.container .error.output ul li {
+    /* Styling for each line of the errors */
+    color: rgba(255, 0, 0, 1);
+}
+
+.container .success_output {
+    /* Used to set defaults for JQuery Fade In/Fade Out */
+    display: none;
+    opacity: 1;
+    font-weight: bold;
+    background: #4BCF08;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.container .info_output {
+    /* Used to set defaults for JQuery Fade In/Fade Out */
+    display: none;
+    opacity: 1;
+    font-weight: bold;
+    background: #d9edf7;
+    color: black;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 7px;
+}
+
+div:focus {
+    outline: none;
+}
+
+/* Accordion styles */
+
+.disabled-radio {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+.tab {
+  width: 100%;
+  color: black;
+  overflow: hidden;
+}
+.tab-label {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  padding: 1em;
+  background: #f2f4f5;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  /* Icon */
+}
+.tab-label:hover {
+  background: #E6E6E7;
+}
+.tab-label::after {
+  content: "\276F";
+  width: 1em;
+  height: 1em;
+  text-align: center;
+  -webkit-transition: all 0.35s;
+  transition: all 0.35s;
+}
+.tab-content {
+  max-height: 0;
+  color: #2c3e50;
+  background: white;
+  -webkit-transition: all 0.35s;
+  transition: all 0.35s;
+}
+
+.disabled-radio:checked + .tab-label {
+  background: #007fff;
+  color: white;
+}
+.disabled-radio:checked + .tab-label::after {
+  -webkit-transform: rotate(90deg);
+          transform: rotate(90deg);
+}
+.disabled-radio:checked ~ .tab-content {
+  max-height: 100vh;
+  margin-bottom: 7px;
+}
