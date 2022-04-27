@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '6 18 * * 0'
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+        architecture: x64
+    
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v3
+      with:
+        path: "scripts/requirements.txt"
+
+    - name: Run Splunkbase Download of Latest release    
+      run: python ./scripts/splunkbase-download.py
+
+    - name: Untar release and clean up tar.gz
+      run: |-
+        tar -xf *.tar.gz
+        rm *.tar.gz
+
+    - name: Commit and push if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add -A
+        timestamp=$(date -u)
+        git commit -m "Update data: ${timestamp}" || exit 0
+        git push
