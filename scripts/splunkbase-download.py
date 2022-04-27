@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import urllib.request, json 
 import requests
 from bs4 import BeautifulSoup
@@ -37,8 +38,8 @@ def get_form_details(form):
 package_id = 2964
 url = f"https://splunkbase.splunk.com/api/v1/app/{package_id}/?include=releases,releases.content,releases.splunk_compatibility,releases.cim_compatibility,release,release.content,release.cim_compatibility,release.splunk_compatibility&instance_type=cloud"
 urlauth = "https://account.splunk.com/api/v1/okta/auth"
-username = "$SPLUNKBASE_USER"
-password = "$SPLUNKBASE_PASS"
+username = os.environ['SPLUNKBASE_USER']
+password = os.environ['SPLUNKBASE_PASS']
 session = requests.session()
 # Base auth with okta, store cookies
 auth_req = session.post(urlauth, json={"username": username, "password": password}).json()

@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '6 18 * * 0'
 
+env:
+  SPLUNKBASE_USER: ${{ secrets.SPLUNKBASE_USER }}
+  SPLUNKBASE_PASS: ${{ secrets.SPLUNKBASE_PASS }}
+
 jobs:
   scheduled:
     runs-on: ubuntu-latest
