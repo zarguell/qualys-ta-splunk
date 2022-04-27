@@ -237,7 +237,10 @@ class HostDetectionPopulator(BasePopulator):
             if dl is not None:
                 for detection in list(dl):
                     vuln_summary = []
-                    vuln_results_field = ""
+                                    vuln_results_field = re.sub('\n', 'NEW_LINE_CHAR', val)
+                                    vuln_results_field = re.sub('\t', 'TAB_CHAR', vuln_results_field)
+                                    vuln_results_field = re.sub('\s+', ' ', vuln_results_field).strip(' ')
+#                    vuln_results_field = ""
                     is_results_field = False
                     qid_node = detection.find('QID')
                     if qid_node is not None:
@@ -282,7 +285,10 @@ class HostDetectionPopulator(BasePopulator):
                             if name in detection_fields_to_log_final_list:
                                 if (name == "RESULTS"):
                                     is_results_field = True
-                                    vuln_results_field = re.sub('\s+', ' ', val).strip(' ')
+                                    vuln_results_field = re.sub('\n', 'NEW_LINE_CHAR', val)
+                                    vuln_results_field = re.sub('\t', 'TAB_CHAR', vuln_results_field)
+                                    vuln_results_field = re.sub('\s+', ' ', vuln_results_field).strip(' ')
+#                                    vuln_results_field = re.sub('\s+', ' ', val).strip(' ')
 
                                 if (name != "RESULTS"):
                                     vuln_summary.append("%s=\"%s\"" % (name, val))
@@ -304,7 +310,10 @@ class HostDetectionPopulator(BasePopulator):
                                     static_result_content = len(' [TRUNCATED Characters] ')
                                     truncated_chars = (vuln_results_field_len + static_result_content) - self.max_allowed_results_field_len
                                     actual_truncated_chars = truncated_chars + len(str(truncated_chars))                                   
-                                    vuln_results_field = vuln_results_field[:int(vuln_results_field_len - actual_truncated_chars)] + " [TRUNCATED "+str(actual_truncated_chars)+" Characters]"
+                                    vuln_results_field = re.sub('\n', 'NEW_LINE_CHAR', val)
+                                    vuln_results_field = re.sub('\t', 'TAB_CHAR', vuln_results_field)
+                                    vuln_results_field = re.sub('\s+', ' ', vuln_results_field).strip(' ')
+#                                    vuln_results_field = vuln_results_field[:int(vuln_results_field_len - actual_truncated_chars)] + " [TRUNCATED "+str(actual_truncated_chars)+" Characters]"
                                     result_truncated = 2
                                     
                                 if self.hd_event_truncate_limit > 0:
