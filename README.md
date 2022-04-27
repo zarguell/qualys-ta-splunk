@@ -7,3 +7,7 @@ This is a simple modification to the Qualys TA for Splunk, created to change the
 This original intention was to use the [splunkbase_download](https://github.com/tfrederick74656/splunkbase-download) script to download the Splunk TA via Github Actions, add necessary code changes, for continious integrate of the small code change to the upstream Qualys TA from Splunkbase. Looks like SplunkBase authentication process changed a bit, so I took the [script](https://github.com/tfrederick74656/splunkbase-download/issues/1) from the issue on the repo, and modified it to work for Github Actions to download the latest Qualys TA release.
 
 This explanation is sort of a stub, I intend to elaborate on the use cases in the future.
+
+This is the simple modification made to the detectionpopulator.py script:
+
+![Code Diff](assets/diff.png?raw=true "Cde Diff")
