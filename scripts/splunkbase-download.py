@@ -35,7 +35,7 @@ def get_form_details(form):
             value = input(f"Enter the value of the field '{input_tag['name']}' (type: {input_tag['type']}): ")
             data[input_tag["name"]] = value
     return action, method, data
-package_id = 1621
+package_id = 2964
 url = f"https://splunkbase.splunk.com/api/v1/app/{package_id}/?include=releases,releases.content,releases.splunk_compatibility,releases.cim_compatibility,release,release.content,release.cim_compatibility,release.splunk_compatibility&instance_type=cloud"
 urlauth = "https://account.splunk.com/api/v1/okta/auth"
 username = input("Username: ")
@@ -58,12 +58,12 @@ elif method == "get":
     session.get(action, data=form_data)
 print("Successfully authenticated, downloading packages")
 app_name = data["appid"]
-# Now that that is done, we can freely download whatever packages we want.
-for release in data["releases"]:
-    version = release["title"]
-    path = release["path"]
-    splunk_compatibility = release["splunk_compatibility"]
-    cim_compatibility = release["cim_compatibility"]
-    product_compatibility = release["product_compatibility"]
-    with open(f"{app_name} - {version}.tar.gz", "wb") as f:
-        f.write(session.get(path).content)
+# Download Only First Release (Latest Release)
+release = data["releases"][0]
+version = release["title"]
+path = release["path"]
+splunk_compatibility = release["splunk_compatibility"]
+cim_compatibility = release["cim_compatibility"]
+product_compatibility = release["product_compatibility"]
+with open(f"{app_name}-{version}.tar.gz", "wb") as f:
+    f.write(session.get(path).content)
