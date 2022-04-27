@@ -33,10 +33,17 @@ jobs:
     - name: Run Splunkbase Download of Latest release    
       run: python ./scripts/splunkbase-download.py
 
-    - name: Untar release and clean up tar.gz
+    - name: Clean Old TA Folder
+      run: rm -rf ./TA-QualysCloudPlatform/
+
+    - name: Untar release to folder and clean up downloaded tar.gz
       run: |-
         tar -xf *.tar.gz
         rm *.tar.gz
+
+    - name: Modify Qualys Detection Populator with enhancements via sed
+      run: |-
+        sed -i '0,/.*vuln_results_field = re.sub('\\\'\\\\s+\\\'',.*/s/.*vuln_results_field .*/                                    vuln_results_field = re.sub('\\\'\\\\n\\\'', '\\\'NEW_LINE_CHAR\\\'', val)\n                                    vuln_results_field = re.sub('\\\'\\\\t\\\'', '\\\'TAB_CHAR\\\'', vuln_results_field)\n                                    vuln_results_field = re.sub('\\\'\\\\s+\\\'', '\\\'\ \\\'', vuln_results_field).strip('\\\'\ \\\'')\n#&/' ./TA-QualysCloudPlatform/bin/qualysModule/splunkpopulator/detectionpopulator.py
 
     - name: Commit and push if it changed
       run: |-
