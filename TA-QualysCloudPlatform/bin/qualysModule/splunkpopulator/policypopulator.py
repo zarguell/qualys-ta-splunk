@@ -364,7 +364,7 @@ class ThreadedPostureInfoPopulator(BasePopulator):
 								remediation = info_elem.find('REMEDIATION')
 								event_list.append("REMEDIATION=\"%s\"" % self.clean_data(remediation) if remediation is not None else '')
 							else:
-								qlogger.warning("CONTROL_ID=%s has no REMEDIATION info for POLICY_ID=%s.", control_id, policy_id)
+								qlogger.debug("CONTROL_ID=%s has no REMEDIATION info for POLICY_ID=%s.", control_id, policy_id)
 
 							if info_elem.find('CAUSE_OF_FAILURE') != None:
 								cause_of_failure_dict = self.get_cause_of_failure(info_elem.find('CAUSE_OF_FAILURE'))
@@ -372,7 +372,7 @@ class ThreadedPostureInfoPopulator(BasePopulator):
 									cause_of_failure_data = (str(k) + "=\"" + ' | '.join(v) + "\"")
 									event_list.append(cause_of_failure_data)
 							else:
-								qlogger.warning("CONTROL_ID=%s has no CAUSE_OF_FAILURE info for POLICY_ID=%s.", control_id, policy_id)
+								qlogger.debug("CONTROL_ID=%s has no CAUSE_OF_FAILURE info for POLICY_ID=%s.", control_id, policy_id)
 
 							if info_elem.find('EVIDENCE') != None:
 								evidence_dict = self.get_evidence(info_elem.find('EVIDENCE'))
@@ -381,7 +381,7 @@ class ThreadedPostureInfoPopulator(BasePopulator):
 										evidence_data = (str(k) + "=\"" + v + "\"")
 										event_list.append(evidence_data)
 							else:
-								qlogger.warning("CONTROL_ID=%s has no EVIDENCE info for POLICY_ID=%s.", control_id,
+								qlogger.debug("CONTROL_ID=%s has no EVIDENCE info for POLICY_ID=%s.", control_id,
 												policy_id)
 
 						events_list = "POSTURE_INFO: %s" % ", ".join(event_list)

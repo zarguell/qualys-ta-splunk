@@ -41,7 +41,7 @@ import qualysModule.lib.api as qapi
 
 
 #CONSTANTS
-SERVICES_BEHIND_GATEWAY = ['fim_events', 'fim_ignored_events', 'fim_incidents', 'edr_events','cs_container_vulns','cs_image_vulns','sem_detection']
+SERVICES_BEHIND_GATEWAY = ['fim_events', 'fim_ignored_events', 'fim_incidents', 'edr_events','cs_container_vulns','cs_image_vulns','sem_detection','pcrs_posture_info']
 #qualys_platforms_url_map is a map of urls not having 'apps' in url; new pods apis are having apps in name
 #e.g. https://qualysapi.qg1.apps.qualys.in, https://qualysapi.qg2.apps.qualys.eu
 QUALYS_PLATFORMS_URLS_NOT_HAVING_apps = {
@@ -71,6 +71,10 @@ parser = OptionParser()
 parser.add_option("-c", "--compliance-posture-info",
 					action="store_true", dest="log_pc_api", default=False,
 					help="Log Policy Compliance Posture Information entries")
+
+parser.add_option("--pcrs", "--compliance-pcrs-info",
+					action="store_true", dest="log_pcrs_api", default=False,
+					help="Log PCRS Posture Information entries")
 
 parser.add_option("-k", "--log-knowledgebase",
 					action="store_true", dest="log_kb_api", default=False,
@@ -155,6 +159,7 @@ parser.add_option("--ca-pass", "--ca-pass",
 (options, args) = parser.parse_args()
 
 log_pc_api = False
+log_pcrs_api =False
 log_kb_api = False
 log_detection_api = False
 log_findings_api = False
@@ -196,6 +201,10 @@ if options.log_findings_api:
 if options.log_pc_api:
 	log_pc_api = True
 	data_input_running = "policy_posture_info"
+
+if options.log_pcrs_api:
+	log_pcrs_api = True
+	data_input_running = "pcrs_posture_info"
 	
 if options.log_csi_api:
 	log_csi_api = True
@@ -317,7 +326,7 @@ apiConfig.ca_key = ca_key if ca_key else None
 apiConfig.ca_pass = ca_pass if ca_pass else None
 
 # when more data inputs added which are behind gateway=> is_behind_gateway = (log_fim_api or log_edr)
-is_behind_gateway = log_fim_events_api or log_fim_ignored_events_api or log_fim_incidents_api or log_edr_api or log_csi_api or log_csc_api or log_sem_api
+is_behind_gateway = log_fim_events_api or log_fim_ignored_events_api or log_fim_incidents_api or log_edr_api or log_csi_api or log_csc_api or log_sem_api or log_pcrs_api
 qapi.setupClient(apiConfig, is_behind_gateway)
 qapi.client.validate()
 ew = EventWriter()
@@ -348,6 +357,12 @@ try:
 		cp = './policy_posture_info'
 		qlogger.info("Running PC posture information input")
 		pcPosturePopulator = qualysModule.qualys_log_populator.QualysPCPosturePopulator(settings=appConfig, checkpoint=cp, host=h, index=i, start_date=start_date, event_writer=ew)
+		pcPosturePopulator.run()
+
+	if log_pcrs_api:
+		cp = './pcrs_posture_info'
+		qlogger.info("Running PCRS posture information input")
+		pcPosturePopulator = qualysModule.qualys_log_populator.QualysPCRSPopulator(settings=appConfig, checkpoint=cp, host=h, index=i, start_date=start_date, event_writer=ew)
 		pcPosturePopulator.run()
 		
 	if log_csi_api:

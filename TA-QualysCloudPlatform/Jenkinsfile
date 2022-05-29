@@ -1,0 +1,9 @@
+@Library("jenkins-libraries-v2@master")
+import com.qualys.pipeline.*
+  
+def templateName = "generic-java-libraries-template"
+def branch = "master"
+def nodeLabel = "slave"
+  
+pipeline = loadPipelineTemplate(templateName, branch, nodeLabel)
+pipeline.runPipeline("properties.yaml", nodeLabel)
