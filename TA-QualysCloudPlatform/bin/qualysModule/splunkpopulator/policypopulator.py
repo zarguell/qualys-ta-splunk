@@ -438,6 +438,7 @@ class ThreadedPostureInfoPopulator(BasePopulator):
 
 	def create_control_dict(self, elem, xpath, policy_id):
 		try:
+			self.CONTROL_DICT = {}
 			elemt_list = elem.findall(xpath)
 			for control in elemt_list:
 				id = control.find("ID").text

@@ -190,10 +190,10 @@ class HostDetectionPopulator(BasePopulator):
                             host_tags.append(tag_element.text.replace("\"", "\'").replace("\n", ""))
                         # for
                         val = ",".join(host_tags)
+                        
                     # tags parsing ends here
                     else:
                         val = sub_ele.text.replace("\"", "\'").replace("\n", "")
-                    # else
 
                     if name in fields_to_encode:
                         if sys.version_info[0] < 3:
