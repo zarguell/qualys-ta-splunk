@@ -364,9 +364,12 @@ class QualysDetectionPopulator(QualysBaseLogPopulator):
 						#SPLNKAPP-420 | if cp_last_run_datetime has a date with format 'yyyy-mm-dd'
 						#Below line will create an ValueError: time data 'yyyy-mm-dd' does not match format '%Y-%m-%dT%H:%M:%SZ'
 						last_fetched_date_time = datetime.strptime(cp_last_run_datetime, '%Y-%m-%dT%H:%M:%SZ')
+						#start_datetime = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+						detection_configuration.add_detection_api_filter('detection_updated_since',cp_last_run_datetime)
 						detection_configuration.add_detection_api_filter('vm_processed_after', cp_last_run_datetime)
-						qlogger.info("Fetching detection data for Hosts which were scanned after %s",
-									 cp_last_run_datetime)
+						qlogger.info("Fetching detection data for Hosts which were scanned after %s ",
+									cp_last_run_datetime)
+
 					except ValueError:
 						qlogger.error("Incorrect date format found: %s. The correct date format is: yyyy-mm-ddTHH-MM-SSZ.", cp_last_run_datetime)
 

@@ -191,7 +191,17 @@ class HostDetectionPopulator(BasePopulator):
                         # for
                         val = ",".join(host_tags)
                         
+                    elif name == "CLOUD_PROVIDER_TAGS":
+                        cloud_tags = []
+                        tag_elements = sub_ele.findall('CLOUD_TAG')
+                        for tag_element in list(tag_elements):
+                            cloud_tag_value = tag_element.find("VALUE")
+                            if cloud_tag_value is not None:
+                                cloud_tag_value = cloud_tag_value.text.replace("\"", "\'").replace("\n", "")
+                                cloud_tags.append(cloud_tag_value)
+                        val= ",".join(cloud_tags)
                     # tags parsing ends here
+
                     else:
                         val = sub_ele.text.replace("\"", "\'").replace("\n", "")
 
