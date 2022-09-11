@@ -24,7 +24,7 @@
 
 | Author | Qualys, Inc. |
 | --- | --- |
-| App Version | 1.10.4 |
+| App Version | 1.10.5 |
 | Vendor Products | Qualys |
 | Has index-time operations | false |
 | Create an index | false |
@@ -51,7 +51,7 @@ This TA implements modular input. All the scripts reside in the bin directory.
 
 ##### Third-party software attributions
 
-Version 1.10.4 of the TA-QualysCloudPlatform uses following third-party software or libraries.
+Version 1.10.5 of the TA-QualysCloudPlatform uses following third-party software or libraries.
 - croniter-0.3.8-py2.7.egg and its dependencies listed below.
 - python_dateutil-2.4.2-py2.7.egg
 - six-1.9.0-py2.7.egg

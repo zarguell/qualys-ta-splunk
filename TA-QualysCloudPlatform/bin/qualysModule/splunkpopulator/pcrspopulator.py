@@ -26,6 +26,7 @@ import math
 import zlib
 import six.moves.urllib.request as urlreq
 import requests
+import urllib3
 from requests.exceptions import Timeout
 
 import re
@@ -299,10 +300,19 @@ class ThreadedPostureInfoPopulator(PCRSBasePopulatorJson):
                     qlogger.info("Type of request: %s" % method)
 
                     if self.api_client._config.useProxy:
-                        proxyDict={
-                        'https' : self.api_client._config.proxyHost
-                        }
-                        response=requests.post(url=req.get_full_url(),headers=req.headers,data=params,stream=True, timeout=timeout, verify=False, proxies=proxyDict)
+                        try:
+                            proxyDict={
+                            'https' : self.api_client._config.proxyHost,
+                            'http' : self.api_client._config.proxyHost
+                            }
+                            response=requests.post(url=req.get_full_url(),headers=req.headers,data=params,stream=True, timeout=timeout, verify=False, proxies=proxyDict)
+                        except (urllib3.exceptions.ProxySchemeUnknown, AssertionError):
+                            proxyDict={
+                            'https' : "https://"+self.api_client._config.proxyHost,
+                            'http' : "https://"+self.api_client._config.proxyHost
+                            }
+                            response=requests.post(url=req.get_full_url(),headers=req.headers,data=params,stream=True, timeout=timeout, verify=False, proxies=proxyDict)
+                            
                     else:
                         response=requests.post(url=req.get_full_url(),headers=req.headers,data=params,stream=True, timeout=timeout, verify=False)
 
@@ -414,7 +424,6 @@ class ThreadedPostureInfoPopulator(PCRSBasePopulatorJson):
             for chunk in response.iter_content(chunk_size=1048576):
                 decompress_res=decompress_chunk.decompress(chunk)
                 chunk_res=decompress_res
-
                 complete_json=re.split(r"(},{)",chunk_res.decode())
                 index=0
                 if len(complete_json)==1:
@@ -534,6 +543,7 @@ class ThreadedPostureInfoPopulator(PCRSBasePopulatorJson):
                         val="{\"id\"" + val
                     if val.endswith("]}"):
                         val+="}}"
+                    response_str=val
                     rawJson=json.loads(val)
                     self.LOGGED += 1
                     event = Event(host=self.HOST, index=self.INDEX, source=self.SOURCE, sourcetype=self.SOURCETYPE)
@@ -566,5 +576,12 @@ class ThreadedPostureInfoPopulator(PCRSBasePopulatorJson):
         
         except Exception as e:
             qlogger.error("Could not get posture info from API. Reason: " + str(e))
+            self.save_chunk_file(str(response_str),'Chunk')
             return False
 #end of ThreadedPostureInfoPopulator
+
+    def save_chunk_file(self, Chunk,FILE_PREFIX):
+        filename = temp_directory + "/%s_%s_%s_%s_.json.errored" % (FILE_PREFIX, datetime.now().strftime("%Y-%m-%d %H-%M-%S.%f"), current_thread().getName(), os.getpid())
+        with open(filename,'w') as f:
+            qlogger.debug("Saving Chunk file %s",filename)
+            f.write(Chunk)

@@ -41,7 +41,7 @@ class QualysKnowledgebasePopulator(BasePopulator):
     # extra fields to log with QID, by default QID_INFO and SEVERITY are already included
 
     QID_EXTRA_FIELDS_TO_LOG = ["DIAGNOSIS", "CONSEQUENCE", "SOLUTION"]
-    QID_FIELDS_TO_LOG = ["VULN_TYPE", "PATCHABLE", "PCI_FLAG", "TITLE", "CATEGORY", "PUBLISHED_DATETIME"]
+    QID_FIELDS_TO_LOG = ["VULN_TYPE", "PATCHABLE", "PCI_FLAG", "TITLE", "CATEGORY", "PUBLISHED_DATETIME", "LAST_SERVICE_MODIFICATION_DATETIME","AUTHENTICATION","DISCOVERY_REMOTE","SUPPORTED_MODULES"]
     BOOL_FIELDS = ["PATCHABLE", "PCI_FLAG"]
 
     CSV_HEADER_COLUMNS = ["QID", "SEVERITY"] + QID_FIELDS_TO_LOG + ["CVSS_BASE", "CVSS_TEMPORAL",
@@ -80,7 +80,7 @@ class QualysKnowledgebasePopulator(BasePopulator):
 
     @property
     def get_api_parameters(self):
-        return dict(list({"action": "list", "details": "Basic"}.items()) + list(self._knowledgebase_api_filters.items()))
+        return dict(list({"action": "list", "details": "Basic","show_supported_modules_info":"1"}.items()) + list(self._knowledgebase_api_filters.items()))
 
     def _process_root_element(self, elem):
         logged = False
@@ -102,6 +102,18 @@ class QualysKnowledgebasePopulator(BasePopulator):
                     elif name in self.BOOL_FIELDS:
                         val = 'YES' if val == '1' else 'NO'
                     qid_dict[name] = val
+
+                elif name == 'DISCOVERY':
+                    for sub_tag in list(sub_ele):
+                        name = sub_tag.tag
+                        if name == 'REMOTE':
+                            val = sub_tag.text
+                            qid_dict["DISCOVERY_REMOTE"] = 'YES' if val == '1' else 'NO'
+                        elif name == 'AUTH_TYPE_LIST':
+                            AUTH_LIST = []
+                            for auth_tag in list(sub_tag):
+                                AUTH_LIST.append(auth_tag.text)
+                            qid_dict['AUTHENTICATION'] = ','.join(AUTH_LIST)
 
                 elif name == 'CVSS':
                     for sub_tag in list(sub_ele):

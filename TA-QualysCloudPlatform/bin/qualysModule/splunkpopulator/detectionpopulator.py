@@ -190,7 +190,8 @@ class HostDetectionPopulator(BasePopulator):
                             host_tags.append(tag_element.text.replace("\"", "\'").replace("\n", ""))
                         # for
                         val = ",".join(host_tags)
-                        
+                    # tags parsing ends here
+                    
                     elif name == "CLOUD_PROVIDER_TAGS":
                         cloud_tags = []
                         tag_elements = sub_ele.findall('CLOUD_TAG')
@@ -200,10 +201,10 @@ class HostDetectionPopulator(BasePopulator):
                                 cloud_tag_value = cloud_tag_value.text.replace("\"", "\'").replace("\n", "")
                                 cloud_tags.append(cloud_tag_value)
                         val= ",".join(cloud_tags)
-                    # tags parsing ends here
 
                     else:
-                        val = sub_ele.text.replace("\"", "\'").replace("\n", "")
+                        sub_ele_text = "" if sub_ele.text == None else sub_ele.text
+                        val = sub_ele_text.replace("\"", "\'").replace("\n", "")
 
                     if name in fields_to_encode:
                         if sys.version_info[0] < 3:
