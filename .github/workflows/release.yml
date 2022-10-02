@@ -22,7 +22,8 @@ jobs:
       id: get-version
       run: |
         QUALYS_VERSION=`cat TA-QualysCloudPlatform/default/app.conf | grep version | cut -d '=' -f 2 | xargs`
-        echo '::set-output name=VERSION::${QUALYS_VERSION}'
+        echo $QUALYS_VERSION
+        echo '::set-output name=VERSION::$(echo ${QUALYS_VERSION})'
 
     - name: Validate Version
       run: echo "Version ${{ steps.get-version.outputs.VERSION }}"
