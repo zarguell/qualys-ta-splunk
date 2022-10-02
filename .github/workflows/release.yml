@@ -1,0 +1,45 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+
+  publish:
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    
+    - name: Get Version
+      id: get-version
+      run: |
+        QUALLYS_VERSION=`cat TA-QualysCloudPlatform/default/app.conf | grep version | cut -d '=' -f 2 | xargs`
+        echo '::set-output name=VERSION::$QUALYS_VERSION'
+
+    - name: Validate Version
+      run: echo "Version ${{ steps.get-version.outputs.VERSION }}"
+      
+    - name: Archive Release
+      uses: thedoctor0/zip-release@main
+      with:
+        type: 'zip'
+        path: 'TA-QualysCloudPlatform'
+        filename: 'TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}.zip'
+
+    - name: create release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}"
+        files: |
+          TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}.zip
