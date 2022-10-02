@@ -36,7 +36,7 @@ jobs:
       with:
         type: 'zip'
         path: 'TA-QualysCloudPlatform'
-        filename: 'TA-QualysCloudPlatform-$${{ env.QUALYS_VERSION }}.zip'
+        filename: 'TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}.zip'
 
     - name: create release
       uses: "marvinpinto/action-automatic-releases@latest"
