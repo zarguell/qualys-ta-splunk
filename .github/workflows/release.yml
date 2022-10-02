@@ -23,17 +23,20 @@ jobs:
       run: |
         QUALYS_VERSION=`cat TA-QualysCloudPlatform/default/app.conf | grep version | cut -d '=' -f 2 | xargs`
         echo $QUALYS_VERSION
+        echo "QUALYS_VERSION=${QUALYS_VERSION}" >> $GITHUB_ENV
         echo '::set-output name=VERSION::$(echo ${QUALYS_VERSION})'
 
     - name: Validate Version
-      run: echo "Version ${{ steps.get-version.outputs.VERSION }}"
+      run: |
+        echo "Version:  ${{ steps.get-version.outputs.VERSION }}"
+        echo "ENV Version: ${{ env.QUALYS_VERSION }}"
       
     - name: Archive Release
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
         path: 'TA-QualysCloudPlatform'
-        filename: 'TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}.zip'
+        filename: 'TA-QualysCloudPlatform-$${{ env.QUALYS_VERSION }}.zip'
 
     - name: create release
       uses: "marvinpinto/action-automatic-releases@latest"
@@ -41,6 +44,6 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: false
-        title: "TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}"
+        title: "TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}"
         files: |
-          TA-QualysCloudPlatform-${{ steps.get-version.outputs.VERSION }}.zip
+          TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}.zip
