@@ -38,11 +38,21 @@ jobs:
         path: 'TA-QualysCloudPlatform'
         filename: 'TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}.zip'
 
-    - name: create release
+    - name: create latest release
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
+        prerelease: false
+        title: "TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}"
+        files: |
+          TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}.zip
+
+    - name: create version tagged release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "${{ env.QUALYS_VERSION }}"
         prerelease: false
         title: "TA-QualysCloudPlatform-${{ env.QUALYS_VERSION }}"
         files: |
