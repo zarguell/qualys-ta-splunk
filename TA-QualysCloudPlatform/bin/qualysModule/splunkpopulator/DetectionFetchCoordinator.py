@@ -21,7 +21,7 @@ class HostIdsFifoPopulator(HostIdRetriever):
 	"""
 	fifoQueue = None
 
-	def __init__(self, fifoQueue, detection_truncation_limit, default_host_truncation_limit, cp_last_run_datetime):
+	def __init__(self, fifoQueue, detection_truncation_limit, default_host_truncation_limit, cp_last_run_datetime, host_api_filters):
 		super(HostIdsFifoPopulator, self).__init__()
 
 		assert isinstance(fifoQueue, Queue.Queue)
@@ -29,6 +29,7 @@ class HostIdsFifoPopulator(HostIdRetriever):
 		self.detection_truncation_limit = detection_truncation_limit
 		self.default_host_truncation_limit = default_host_truncation_limit
 		self.cp_last_run_datetime = cp_last_run_datetime
+		self.host_api_filters= host_api_filters
 
 	# end __init__
 
@@ -198,7 +199,7 @@ class DetectonFetchCoordinator:
 
 		# now we drive with assethost stuff
 		qlogger.debug("Doing AssetHost Stuff")
-		hip = HostIdsFifoPopulator(idsetQueue, self.hostDetectionConfiguration.truncation_limit, self.hostDetectionConfiguration.default_host_truncation_limit, self.config['cp_last_run_datetime'])
+		hip = HostIdsFifoPopulator(idsetQueue, self.hostDetectionConfiguration.truncation_limit, self.hostDetectionConfiguration.default_host_truncation_limit, self.config['cp_last_run_datetime'], self.config['host_api_filters'])
 		hip.run()
 		qlogger.debug("Done with hostassets, set to false")
 		control['active'] = False

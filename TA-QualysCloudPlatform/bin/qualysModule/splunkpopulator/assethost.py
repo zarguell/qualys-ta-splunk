@@ -20,10 +20,13 @@ we'll follow convention for now.
 class HostIdRetriever(BasePopulator):
 	truncation_limit = 5
 	cp_last_run_datetime = '1999-01-01T00:00:00Z'
+	host_api_filters={}
+	global ars
+	ars={}
 
 	OBJECT_TYPE = "ids"
 	FILE_PREFIX = "host_ids"
-	ROOT_TAG = 'ID_SET'
+	ROOT_TAG = 'HOST_LIST'
 
 	def __init__(self):
 
@@ -31,12 +34,13 @@ class HostIdRetriever(BasePopulator):
 		# Truncating the gathering of asset ids greatly increases the changes of something going wrong
 		# Pull all Asset IDs at once, and we'll insert them in chunks after
 		self.truncation_limit = 0
+		self.host_api_filters={}
 
 	# end __init__
 
 	@property
 	def get_api_parameters(self):
-		return dict(list({"action": "list", "details": "None", "truncation_limit": self.truncation_limit, "vm_processed_after": self.cp_last_run_datetime}.items()))
+		return dict(list({"action": "list", "truncation_limit": self.truncation_limit, "vm_processed_after": self.cp_last_run_datetime}.items())+list(self.host_api_filters.items()))
 
 	# end get_api_parameters
 
@@ -64,20 +68,32 @@ class HostIdRetriever(BasePopulator):
 		global num_ids, chunks
 		qualysModule.splunkpopulator.utils.printStreamEventXML("_internal", "Processing id set")
 		ids = []
+		ars={}
 		count = 1
-		if elem.tag == "ID_SET":
-			for id in list(elem):
-				if id.tag == 'ID' or id.tag == 'ID_RANGE':
-					count += 1
-					ids.append(id.text)
-				else:
-					# do something about this maybe?
-					pass
-					# end if
-					# end for
-		else:
-			pass
-		# end if
+		if elem.tag == "HOST_LIST":
+			for name in list(elem):
+				if name.tag == "HOST" :
+					value=[]
+					for id in list(name) :
+						if id.tag == 'ID' or id.tag == 'ID_RANGE':
+							count += 1
+							host_id=id.text
+							ids.append(id.text)
+						if id.tag =="ASSET_RISK_SCORE" :
+							value.append("ARS="+id.text)
+						if id.tag =="ASSET_CRITICALITY_SCORE" :
+							value.append("ACS="+id.text)
+						if id.tag == "ARS_FACTORS":
+							vuln_count=[]
+							for factors in list(id):
+								if factors.tag == "ARS_FORMULA":
+									value.append("ARS_FORMULA="+str(factors.text))
+								if factors.tag == "VULN_COUNT" :
+									vuln_count.append("ARS_FACTORS_VULN_COUNT_with_QDS_Severity_"+factors.attrib['qds_severity']+"="+factors.text)
+								vuln_count_s=", ".join(vuln_count)
+							value.append(vuln_count_s)
+						value_s=", ".join(value)	
+						ars[host_id]=value_s
 
 		num_ids = len(ids)
 		qlogger.debug("Inserting [%s] into queue", num_ids)
@@ -98,5 +114,8 @@ class HostIdRetriever(BasePopulator):
 
 	# end _process_root_element
 
+	def _post_parse(self):
+		return ars
+		
 	def _handle_idset(self, idset):
 		qualysModule.splunkpopulator.utils.printStreamEventXML("_internal", "Got Host IDs : %s" % (idset.tostring()))

@@ -6,6 +6,8 @@ project-name: ta-qualyscloudplatform
 ## Notification Properties ##
 build-additional-args: -P rpm -U -Dmaven.test.skip=true
 
+is-coverity-enabled : true
+cov-project-name: Qualys Integration
 
 #build-additional-args: -DskipTests=true
 

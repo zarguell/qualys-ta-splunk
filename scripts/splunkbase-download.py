@@ -37,12 +37,16 @@ def get_form_details(form):
     return action, method, data
 package_id = 2964
 url = f"https://splunkbase.splunk.com/api/v1/app/{package_id}/?include=releases,releases.content,releases.splunk_compatibility,releases.cim_compatibility,release,release.content,release.cim_compatibility,release.splunk_compatibility&instance_type=cloud"
-urlauth = "https://account.splunk.com/api/v1/okta/auth"
+urlauth = "https://login.splunk.com/api/v2/auth/okta-login" # "https://account.splunk.com/api/v1/okta/auth"
 username = os.environ['SPLUNKBASE_USER']
 password = os.environ['SPLUNKBASE_PASS']
 session = requests.session()
-# Base auth with okta, store cookies
-auth_req = session.post(urlauth, json={"username": username, "password": password}).json()
+# Base auth with okta, store cookies, csrf
+# Send a GET request to the API endpoint using the session object
+csrf_response = session.get("https://login.splunk.com/api/v2/auth/csrfToken")
+# Extract the CSRF token from the JSON response
+csrf_token = csrf_response.json()["_csrf"]
+auth_req = session.post(urlauth, json={"username": username, "password": password, "_csrf": csrf_token}).json()
 if ("status_code" in auth_req and auth_req['status_code'] != 200):
     print("Error authenticating, response: ",auth_req['message'])
     exit(1)

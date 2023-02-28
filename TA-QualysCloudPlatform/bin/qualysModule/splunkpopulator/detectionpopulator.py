@@ -5,6 +5,7 @@ __license__ = "New BSD"
 __version__ = "1.0"
 
 import time
+import sys
 from threading import current_thread
 from collections import defaultdict
 
@@ -14,6 +15,7 @@ import qualysModule
 from qualysModule.splunkpopulator.qid_plugins import *
 from qualysModule.splunkpopulator.basepopulator import BasePopulator
 from qualysModule.splunkpopulator.basepopulator import BasePopulatorException
+from qualysModule.splunkpopulator.assethost import HostIdRetriever
 from qualysModule import *
 
 from defusedxml import ElementTree as ET
@@ -31,7 +33,7 @@ QIDParser.load_plugins()
 
 class HostDetectionPopulatorConfiguration(object):
     _params_not_allowed = ['action', 'output_format', 'vm_processed_after', 'ids', 'suppress_duplicated_data_from_csv',
-                           'max_days_since_last_vm_scan', 'max_days_since_vm_scan']
+                           'max_days_since_last_vm_scan', 'max_days_since_vm_scan', 'show_ars', 'ars_min', 'ars_min', 'show_ars_factors']
 
     def __init__(self, kbPopulator=None, logger=None):
         self.logger = logger
@@ -47,6 +49,8 @@ class HostDetectionPopulatorConfiguration(object):
         self.detection_fields_to_log = ""
         self.host_fields_to_log = ""
         self.max_allowed_results_field_len = 0
+        self.use_multi_threading = False
+        self.host_asset_params = False
 
     def add_detection_api_filter(self, name, value, user_defined=False):
         if not user_defined or name not in self._params_not_allowed:
@@ -134,6 +138,8 @@ class HostDetectionPopulator(BasePopulator):
         self.detection_fields_to_log = detectionConfiguration.detection_fields_to_log
         self.host_fields_to_log = detectionConfiguration.host_fields_to_log
         self.max_allowed_results_field_len = detectionConfiguration.max_allowed_results_field_len 
+        self.use_multi_threading=detectionConfiguration.use_multi_threading
+        self.host_asset_params=detectionConfiguration.host_asset_params
         self.event_writer = event_writer
 
     @property
@@ -149,6 +155,21 @@ class HostDetectionPopulator(BasePopulator):
     def api_end_point(self):
         return "/api/2.0/fo/asset/host/vm/detection/"
 
+    def _pre_parse(self):
+        version=sys.version_info[0]
+        #check version of python if version is less than 3 create instance of HostIdRetriever and then call _post_parse function
+        #if version python version is 3 no need to create instance to call _post_parse function
+        if version<3:
+            if self.use_multi_threading and self.host_asset_params :
+                hostidretriever = HostIdRetriever()
+                self.ars = hostidretriever._post_parse()
+            else : 
+                pass 
+        else:
+            if self.use_multi_threading and self.host_asset_params :
+                self.ars=HostIdRetriever._post_parse(self)
+            else : 
+                pass 
     def _process_root_element(self, elem):
         # Convert host fields to log from string to list
         host_fields_to_log_list = self.host_fields_to_log.split(',')
@@ -181,6 +202,17 @@ class HostDetectionPopulator(BasePopulator):
                     host_id = sub_ele.text
                     name = "HOST_ID"
                     host_summary.append("HOST_ID=" + host_id)
+                    if self.use_multi_threading and self.host_asset_params:
+                        for x, y in self.ars.items():
+                            if host_id == str(x) :
+                                host_summary.append(y)
+
+                elif name == "DNS_DATA":
+                    for sub_tag in list(sub_ele):
+                        name = sub_tag.tag
+                        if name == 'HOSTNAME':
+                            hostname = sub_tag.text
+                            host_summary.append("HOSTNAME=" + hostname)
 
                 if name in host_fields_to_log_final_list:
                     if name == "TAGS":
@@ -193,15 +225,22 @@ class HostDetectionPopulator(BasePopulator):
                     # tags parsing ends here
                     
                     elif name == "CLOUD_PROVIDER_TAGS":
-                        cloud_tags = []
                         tag_elements = sub_ele.findall('CLOUD_TAG')
                         for tag_element in list(tag_elements):
                             cloud_tag_value = tag_element.find("VALUE")
+                            cloud_tag_name = tag_element.find("NAME")
+                            val = "" 
+                            name = name + "_"
                             if cloud_tag_value is not None:
-                                cloud_tag_value = cloud_tag_value.text.replace("\"", "\'").replace("\n", "")
-                                cloud_tags.append(cloud_tag_value)
-                        val= ",".join(cloud_tags)
+                                val = cloud_tag_value.text.replace("\"", "\'").replace("\n", "") if cloud_tag_value.text is not None else ""
+                            if cloud_tag_name is not None:
+                                if cloud_tag_name.text is not None:
+                                    name = name + cloud_tag_name.text.replace("\"", "\'").replace("\n", "")
 
+                            host_summary.append("%s=\"%s\"" % (name, val))
+                            name = "CLOUD_PROVIDER_TAGS"
+                        continue
+                        
                     else:
                         sub_ele_text = "" if sub_ele.text == None else sub_ele.text
                         val = sub_ele_text.replace("\"", "\'").replace("\n", "")
@@ -283,6 +322,19 @@ class HostDetectionPopulator(BasePopulator):
                         for sub_ele in list(detection):
                             name = sub_ele.tag
                             val = sub_ele.text.upper() if not name == "RESULTS" else sub_ele.text
+                            if name in detection_fields_to_log_final_list:
+                                if name == 'QDS':
+                                    qds_severity = sub_ele.attrib['severity']
+                                    vuln_summary.append("QDS_Severity="+ qds_severity)
+
+                                elif name == 'QDS_FACTORS':
+                                    qds_factors=[]
+                                    for sub_tag in list(sub_ele):
+                                        name = sub_tag.tag
+                                        if name == 'QDS_FACTOR':
+                                            qds_factors.append('QDS_FACTORS_'+sub_tag.attrib['name']+'="'+sub_tag.text+'"')
+                                    qds_factor_s=", ".join(qds_factors)
+                                    vuln_summary.append(qds_factor_s)
 
                             if name == 'TYPE':
                                 vulns_by_type[val] = vulns_by_type.get(val, 0) + 1
@@ -293,10 +345,10 @@ class HostDetectionPopulator(BasePopulator):
                             if name in detection_fields_to_log_final_list:
                                 if (name == "RESULTS"):
                                     is_results_field = True
+# vuln_results_field = re.sub('\s+', ' ', val).strip(' ')
                                     vuln_results_field = re.sub('\n', 'NEW_LINE_CHAR', val)
                                     vuln_results_field = re.sub('\t', 'TAB_CHAR', vuln_results_field)
                                     vuln_results_field = re.sub('\s+', ' ', vuln_results_field).strip(' ')
-#                                    vuln_results_field = re.sub('\s+', ' ', val).strip(' ')
 
                                 if (name != "RESULTS"):
                                     vuln_summary.append("%s=\"%s\"" % (name, val))

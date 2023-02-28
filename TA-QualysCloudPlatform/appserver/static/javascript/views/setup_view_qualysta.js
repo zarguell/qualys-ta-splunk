@@ -130,6 +130,8 @@ define(
                 var detection_params = jquery("input[name=detection_params]").val();
                 detection_params = this.sanitize_string(detection_params);
 
+                var host_asset_params = +jquery("input[name=host_asset_params]").prop('checked');
+
                 var use_multi_threading = +jquery("input[name=use_multi_threading]").prop('checked');
 
                 var max_allowed_results_field_len = jquery("input[name=max_allowed_results_field_len]").val();
@@ -258,8 +260,26 @@ define(
 
                 var evidenceRequired = +jquery("input[name=evidenceRequired]").prop('checked');  
 
+                var evidencetruncationlimit =  +jquery("input[name=evidencetruncationlimit]").prop('checked');  
+
+                var ssl_verify = +jquery("input[name=ssl_verify]").prop('checked');  
+
+                var pcrs_num_threads = jquery("input[name=pcrs_num_threads]").val();
+                pcrs_num_threads = this.sanitize_string(pcrs_num_threads);
+
+                var pcrs_max_api_retry_count = jquery("input[name=pcrs_max_api_retry_count]").val();
+                pcrs_max_api_retry_count = this.sanitize_string(pcrs_max_api_retry_count);
+
                 var pcrs_num_count_for_pid = jquery("input[name=pcrs_num_count_for_pid]").val();
                 pcrs_num_count_for_pid = this.sanitize_string(pcrs_num_count_for_pid);
+
+                var hostId_batch_size = jquery("input[name=hostId_batch_size]").val();
+                hostId_batch_size = this.sanitize_string(hostId_batch_size);
+
+                var pcrs_custom_policy_operation = jquery("input[name=pcrs_custom_policy_operation]:checked").val();
+
+                var custom_policy_ids = jquery("input[name=custom_policy_ids]").val();
+                custom_policy_ids = this.sanitize_string(custom_policy_ids);
                                
                 var properties_to_update = {
                     api_server: api_server,
@@ -275,6 +295,7 @@ define(
                     detection_fields_to_log: detection_fields_to_log,
                     max_allowed_results_field_len: max_allowed_results_field_len,
                     detection_params: detection_params,
+                    host_asset_params: host_asset_params,
                     use_multi_threading: use_multi_threading,
                     num_threads: num_threads,
                     enable_full_pull: enable_full_pull,
@@ -325,7 +346,14 @@ define(
                     extra_sem_params: extra_sem_params,
                     sem_truncation_limit: sem_truncation_limit,
                     evidenceRequired: evidenceRequired,
-                    pcrs_num_count_for_pid: pcrs_num_count_for_pid                    
+                    evidencetruncationlimit:evidencetruncationlimit,
+                    ssl_verify: ssl_verify,
+                    pcrs_num_threads: pcrs_num_threads,
+                    pcrs_max_api_retry_count: pcrs_max_api_retry_count,
+                    pcrs_num_count_for_pid: pcrs_num_count_for_pid,  
+                    hostId_batch_size: hostId_batch_size,
+                    pcrs_custom_policy_operation: pcrs_custom_policy_operation,
+                    custom_policy_ids: custom_policy_ids                 
                 };
 
                 var error_messages_to_display = this.validate_inputs(
@@ -384,8 +412,7 @@ define(
                         var proxy_password = this.fetch_proxy_password(proxy_server);
 
                         if (proxy_password !== "") {
-                            updated_proxy_server = proxy_server.replace(proxy_password, "****");
-                            
+                            updated_proxy_server = proxy_server.split(':')[0]+':' + proxy_server.split(':').slice(1).join(':').replace(proxy_password, "****");
                             properties_to_update["proxy_server"] = updated_proxy_server;
                             await this.encrypt_proxy_server_password(splunk_js_sdk_service, proxy_password, app_name);
                         }
@@ -640,10 +667,12 @@ define(
             
             //Fetch the values from configuration file (qualys.conf)
             fetch_configuration_file: async function fetch_configuration_file() {
-                var setup_input_fields = ["api_server","ca_path","ca_key","api_timeout","host_fields_to_log","detection_fields_to_log","max_allowed_results_field_len","detection_params","num_threads","seed_file_path","extra_was_params","num_threads_for_was","num_threads_for_pc","pc_truncation_limit","extra_posture_params","cs_num_threads","cs_image_page_size","cs_extra_params","cs_container_num_threads","cs_container_api_page_size","cs_container_extra_params","fim_events_page_size","fim_events_extra_params","fim_ignored_events_page_size","fim_ignored_events_extra_params","fim_incidents_page_size","fim_incidents_extra_params","ioc_events_pageSize","ioc_extra_params","al_extra_params","proxy_server","extra_sem_params","sem_truncation_limit","pcrs_num_count_for_pid"];
+                var setup_input_fields = ["api_server","ca_path","ca_key","api_timeout","host_fields_to_log","detection_fields_to_log","max_allowed_results_field_len","detection_params","num_threads","seed_file_path","extra_was_params","num_threads_for_was","num_threads_for_pc","pc_truncation_limit","extra_posture_params","cs_num_threads","cs_image_page_size","cs_extra_params","cs_container_num_threads","cs_container_api_page_size","cs_container_extra_params","fim_events_page_size","fim_events_extra_params","fim_ignored_events_page_size","fim_ignored_events_extra_params","fim_incidents_page_size","fim_incidents_extra_params","ioc_events_pageSize","ioc_extra_params","al_extra_params","proxy_server","extra_sem_params","sem_truncation_limit","pcrs_num_count_for_pid","hostId_batch_size","pcrs_num_threads","pcrs_max_api_retry_count","custom_policy_ids"];
                 
-                var setup_checkbox_fields = ["use_ca","log_host_summary","log_extra_host_summary","log_detections","log_host_details_in_detections","use_multi_threading","enable_full_pull","enable_seed_file_generation","log_individual_findings","log_webapp_summary","use_multi_threading_for_was","log_individual_compliance_events","log_policy_summary","pc_details","pc_extra_details","pc_multi_threading_enabled","cs_log_individual_events","cs_log_summary_events","cs_multi_threading_enabled","cs_log_individual_container_events","cs_log_container_summary_events","cs_container_multi_threading_enabled","is_index_knowledgebase","log_kb_additional_fields","use_proxy","enable_debug","preserve_api_output","log_individual_sem_detection","log_sem_asset_summary","evidenceRequired"];
+                var setup_checkbox_fields = ["use_ca","log_host_summary","log_extra_host_summary","log_detections","log_host_details_in_detections","use_multi_threading","host_asset_params","enable_full_pull","enable_seed_file_generation","log_individual_findings","log_webapp_summary","use_multi_threading_for_was","log_individual_compliance_events","log_policy_summary","pc_details","pc_extra_details","pc_multi_threading_enabled","cs_log_individual_events","cs_log_summary_events","cs_multi_threading_enabled","cs_log_individual_container_events","cs_log_container_summary_events","cs_container_multi_threading_enabled","is_index_knowledgebase","log_kb_additional_fields","use_proxy","enable_debug","preserve_api_output","log_individual_sem_detection","log_sem_asset_summary","evidenceRequired","evidencetruncationlimit","ssl_verify"];
                 
+                var radio_button_fields = ["pcrs_custom_policy_operation"]
+
                 var app_name = "TA-QualysCloudPlatform";
 
                 var application_name_space = {
@@ -718,6 +747,11 @@ define(
                                     if (value == true || value == 1) {
                                         jquery("input[name="+key+"]").prop('checked', value);
                                     }
+                                }
+                                  else if (radio_button_fields.includes(key)){
+                                    if ( value == "include"){jquery("#include").prop('checked', true)}
+                                    else if (value == "exclude"){jquery("#exclude").prop('checked', true)}
+                                    else{jquery("#none").prop('checked', true)}
                                 }
                             }
                         }
@@ -1184,6 +1218,7 @@ define(
                 var password_errors = this.validate_password_input(ta_password, ta_confirm_password);
                 var ca_password_errors = this.validate_ca_password_input(ca_pass, ca_pass_confirm);
                 var detection_params_errors = this.validate_detection_params_input(properties_to_update['detection_params']);
+                var host_asset_params_errors = this.validate_host_asset_params_input(properties_to_update['host_asset_params']);
                 var extra_was_params_errors = this.validate_extra_was_params_input(properties_to_update['extra_was_params']);
                 var extra_posture_params_errors = this.validate_extra_posture_params_input(properties_to_update['extra_posture_params']);
                 var max_allowed_results_field_len_errors = this.validate_max_allowed_results_field_len_input(properties_to_update['max_allowed_results_field_len']);
@@ -1205,13 +1240,19 @@ define(
                 var pc_truncation_limit_errors = this.validate_pc_truncation_limit_input(properties_to_update['pc_truncation_limit']);
                 var extra_sem_params_errors = this.validate_sem_extra_params_input(properties_to_update['extra_sem_params']);
                 var sem_truncation_limit_errors = this.validate_sem_truncation_limit_input(properties_to_update['sem_truncation_limit']);
-                var pcrs_num_count_for_pid_errors = this.validate_pcrs_num_count_for_pid_input(properties_to_update['pcrs_num_count_for_pid']);                
+                var evidencetruncationlimit_errors = this.validate_evidencetruncationlimit_input();
+                var pcrs_num_threads_errors = this.validate_pcrs_num_threads_input(properties_to_update['pcrs_num_threads']);
+                var pcrs_max_api_retry_count_errors = this.validate_pcrs_max_api_retry_count_input(properties_to_update['pcrs_max_api_retry_count']);
+                var pcrs_num_count_for_pid_errors = this.validate_pcrs_num_count_for_pid_input(properties_to_update['pcrs_num_count_for_pid']); 
+                var pcrs_custom_policy_operation_errors = this.validate_pcrs_custom_policy_operation_input(properties_to_update['pcrs_custom_policy_operation'],properties_to_update['custom_policy_ids']); 
+                var hostId_batch_size_errors= this.validate_hostId_batch_size_input(properties_to_update['hostId_batch_size']);              
 
                 error_messages = error_messages.concat(api_server_errors);
                 error_messages = error_messages.concat(username_password_errors);
                 error_messages = error_messages.concat(password_errors);
                 error_messages = error_messages.concat(ca_password_errors);
                 error_messages = error_messages.concat(detection_params_errors);
+                error_messages = error_messages.concat(host_asset_params_errors);
                 error_messages = error_messages.concat(extra_was_params_errors);
                 error_messages = error_messages.concat(extra_posture_params_errors);
                 error_messages = error_messages.concat(max_allowed_results_field_len_errors);
@@ -1233,7 +1274,12 @@ define(
                 error_messages = error_messages.concat(pc_truncation_limit_errors);
                 error_messages = error_messages.concat(extra_sem_params_errors);
                 error_messages = error_messages.concat(sem_truncation_limit_errors); 
-                error_messages = error_messages.concat(pcrs_num_count_for_pid_errors);                               
+                error_messages = error_messages.concat(evidencetruncationlimit_errors);
+                error_messages = error_messages.concat(pcrs_num_threads_errors);
+                error_messages = error_messages.concat(pcrs_max_api_retry_count_errors);
+                error_messages = error_messages.concat(pcrs_custom_policy_operation_errors);
+                error_messages = error_messages.concat(pcrs_num_count_for_pid_errors);  
+                error_messages=error_messages.concat((hostId_batch_size_errors));                             
 
                 return error_messages;
             },
@@ -1360,6 +1406,21 @@ define(
                         error_message = "Host Detection extra parameters should be either JSON or Query String.";
                         error_messages.push(error_message);
                     }
+                }
+
+                return error_messages;
+            },
+
+            //Validate whether multithreading is enabled for logging host asset params 
+            validate_host_asset_params_input: function validate_host_asset_params_input(host_asset_params) {
+                var error_messages = [];
+                var is_host_asset_params = $("#host_asset_params").is(':checked');
+                var is_use_multi_threading = $("#use_multi_threading").is(':checked');
+
+                if (is_host_asset_params == true && is_use_multi_threading == false){
+                        error_message = "Multi threading should be enabled to log ARS, ACS, ARS_FACTORS";
+                        error_messages.push(error_message);
+                    
                 }
 
                 return error_messages;
@@ -1767,6 +1828,22 @@ define(
                 return error_messages;                
             },
 
+            //Validate PCRS evidence truncation limit
+            validate_evidencetruncationlimit_input: function validate_evidencetruncationlimit_input() {
+                var error_messages = [];
+                var is_evidencetruncationlimit = $("#evidencetruncationlimit").is(':checked');
+                var is_evidenceRequired = $("#evidenceRequired").is(':checked');
+
+                if (is_evidencetruncationlimit == true) {
+                    if (is_evidenceRequired == false){
+                        error_message = "Add additional field evidence checkbox should be checked if truncation limit is to be applied";
+                        error_messages.push(error_message);
+                    }
+                }
+
+                return error_messages;                
+            },
+
             //Validate Number of Policy IDs per resolve host ids api call for PCRS
             validate_pcrs_num_count_for_pid_input: function validate_pcrs_num_count_for_pid_input(pcrs_num_count_for_pid) {
                 var error_messages = [];
@@ -1783,6 +1860,96 @@ define(
                     }
                 } else {
                     error_message = "Number of Policy Ids per API call for Policy Compliance Reporitng Service input should be between 1 to 10.";
+                    error_messages.push(error_message);
+                }
+
+                return error_messages;                
+            },   
+            
+            //Validate PCRS num threads
+            validate_pcrs_num_threads_input: function validate_pcrs_num_threads_input(pcrs_num_threads) {
+                var error_messages = [];
+                var is_pcrs_num_threads_empty = typeof pcrs_num_threads === "undefined" || pcrs_num_threads === "";
+                
+                if (is_pcrs_num_threads_empty == false) {
+                    var is_number = this.is_number(pcrs_num_threads);
+                    if (is_number == false) {
+                        error_message = "Number of threads for Policy Compliance Reporting Service input should be between 2 to 10.";
+                        error_messages.push(error_message);
+                    } else if (pcrs_num_threads < 2 || pcrs_num_threads > 10) {
+                        error_message = "Number of threads for Policy Compliance Reporting Service input should be between 2 to 10.";
+                        error_messages.push(error_message);
+                    }
+                } else {
+                    error_message = "Number of threads forPolicy Compliance Reporting Service input should be between 2 to 10.";
+                    error_messages.push(error_message);
+                }
+
+                return error_messages;                
+            },
+
+            //Validate PCRS maximum retry count
+            validate_pcrs_max_api_retry_count_input: function validate_pcrs_max_api_retry_count_input(pcrs_max_api_retry_count) {
+                var error_messages = [];
+                var is_pcrs_max_api_retry_count_empty = typeof pcrs_max_api_retry_count === "undefined" || pcrs_max_api_retry_count === "";
+                
+                if (is_pcrs_max_api_retry_count_empty == false) {
+                    var is_number = this.is_number(pcrs_max_api_retry_count);
+                    if (is_number == false) {
+                        error_message = "Maximum retry count for Policy Compliance Reporting Service input should be a positive number.";
+                        error_messages.push(error_message);
+                    }
+                } else {
+                    error_message = "Maximum retry count for Policy Compliance Reporting Service input should be a positive number.";
+                    error_messages.push(error_message);
+                }
+
+                return error_messages;                
+            },
+
+            //Validate PCRS custom policy operation
+            validate_pcrs_custom_policy_operation_input: function validate_pcrs_custom_policy_operation_input(pcrs_custom_policy_operation,custom_policy_ids) {
+                var error_messages = [];
+                var is_pcrs_custom_policy_operation_empty = typeof pcrs_custom_policy_operation === "undefined" || pcrs_custom_policy_operation === "";
+                var is_custom_policy_ids_empty = typeof custom_policy_ids === "undefined" || custom_policy_ids === "";
+                
+                if (is_pcrs_custom_policy_operation_empty == true) {
+                    if (is_custom_policy_ids_empty == false) {
+                        error_message = "PCRS Custom Policy Operation must be provided to use custom policy ids.";
+                        error_messages.push(error_message);
+                    }
+                }
+                else if (is_pcrs_custom_policy_operation_empty == false) {
+                    if (is_custom_policy_ids_empty == true) {
+                        error_message = "PCRS custom policy ids must be provided to perform the given operation.";
+                        error_messages.push(error_message);
+                    }
+                }
+                else if  (! (pcrs_custom_policy_operation == '' && is_custom_policy_ids_empty == true)) {
+                    error_message = "PCRS custom policy ids must be provided to perform the given operation.";
+                    error_messages.push(error_message);
+                }
+
+
+                return error_messages;                
+            },
+
+            //Validate Host Ids batch size for PCRS data input
+            validate_hostId_batch_size_input: function validate_hostId_batch_size_input(hostId_batch_size) {
+                var error_messages = [];
+                var is_hostId_batch_size_errors_empty = typeof hostId_batch_size === "undefined" || hostId_batch_size === "";
+                
+                if (is_hostId_batch_size_errors_empty == false) {
+                    var is_number = this.is_number(hostId_batch_size);
+                    if (is_number == false) {
+                        error_message = "Host Ids batch size for Policy Compliance Reporitng Service input should be a positive number.";
+                        error_messages.push(error_message);
+                    } else if (hostId_batch_size < 1) {
+                        error_message = "Host Ids batch size for Policy Compliance Reporitng Service input should be greater than 1.";
+                        error_messages.push(error_message);
+                    }
+                } else {
+                    error_message = "Host Ids batch size for Policy Compliance Reporitng Service input should be a postive number.";
                     error_messages.push(error_message);
                 }
 
@@ -2107,6 +2274,14 @@ define(
                                 "           </div>" +
                                 "           <div class='col-75'>" +
                                 "               <label>Load detection data using multiple threads (resource intensive)</label>" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <input type='checkbox' id='host_asset_params' name='host_asset_params' > &nbsp; &nbsp" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <label>ARS, ACS, ARS_FACTORS for Host Asset API</label>" +
                                 "           </div>" +
                                 "       </div>" +
                                 "       <div class='row'>" +
@@ -2567,10 +2742,68 @@ define(
                                 "       </div>" +
                                 "       <div class='row'>" +
                                 "           <div class='col-25'>" +
+                                "               <input type='checkbox' id='evidencetruncationlimit' name='evidencetruncationlimit' > &nbsp; &nbsp;" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <label>Do you want to truncate the evidence?</label>" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <input type='checkbox' id='ssl_verify' name='ssl_verify' > &nbsp; &nbsp;" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <label>Do you want to enable SSL Certificate Verification?</label>" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <label>Number of threads to use for PCRS (max 10)</label>" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <input type='text' id='pcrs_num_threads' name='pcrs_num_threads' />" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <label>PCRS Maximum API retry count</label>" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <input type='text' id='pcrs_max_api_retry_count' name='pcrs_max_api_retry_count' /><b>Note:</b> PCRS API will retry on failure till the configured number of times. Enter 0 for infinite retry." +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
                                 "               <label>Number of Policy Ids to use for Resolve Host Ids API (max 10)</label>" +
                                 "           </div>" +
                                 "           <div class='col-75'>" +
                                 "               <input type='text' id='pcrs_num_count_for_pid' name='pcrs_num_count_for_pid' />" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <label>Host Ids Batch size for Posture Info Streaming API</label>" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <input type='text' id='hostId_batch_size' name='hostId_batch_size' />" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <label>PCRS Custom Policy Ids</label>" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               <input type='text' id='custom_policy_ids' name='custom_policy_ids' /><b>Note:</b> Enter comma seperated policy ids (e.g. 1234,4566). Leave blank to use Policy Ids from the Policy List API Response" +
+                                "           </div>" +
+                                "       </div>" +
+                                "       <div class='row'>" +
+                                "           <div class='col-25'>" +
+                                "               <label>PCRS custom policy operation (include/exclude)</label>" +
+                                "           </div>" +
+                                "           <div class='col-75'>" +
+                                "               &nbsp; &nbsp; <label><input type='radio' id='include' name='pcrs_custom_policy_operation' value='include' /> Include </label> &nbsp; &nbsp;" +
+                                "               <label><input type='radio' id='exclude' name='pcrs_custom_policy_operation' value='exclude' /> Exclude </label> &nbsp; &nbsp;" +
+                                "               <label><input type='radio' id='none' name='pcrs_custom_policy_operation' value=''/> None </label>\n<br><b>Note: </b>Click \"include\" to use only the entered policy ids or click \"exclude\" to exclude the entered policy ids. Click \"None\" to use Policy Ids from the Policy List API Response." +
                                 "           </div>" +
                                 "       </div>" +
                                 "    </div>" +

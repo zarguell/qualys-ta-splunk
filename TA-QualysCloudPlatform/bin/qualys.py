@@ -223,6 +223,7 @@ def makeAPIConfigObject(session_key, data_input_running):
 	use_ca = qualysConf['setupentity']['use_ca']
 	api_timeout = qualysConf['setupentity']['api_timeout']
 	retry_interval = qualysConf['setupentity']['retry_interval_seconds']
+	ssl_verify = qualysConf['setupentity']['ssl_verify']
 
 	if (api_user is None or api_user == '' or \
 					api_password is None or api_password == '' or \
@@ -254,6 +255,7 @@ def makeAPIConfigObject(session_key, data_input_running):
 	apiConfig.password = api_password
 	apiConfig.serverRoot = api_server
 	apiConfig.api_timeout = api_timeout
+	apiConfig.ssl_verify = ssl_verify
 	apiConfig.retry_interval = retry_interval
 	apiConfig.proxy_server = proxy_server
 

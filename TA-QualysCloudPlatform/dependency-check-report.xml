@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><analysis xmlns="https://jeremylong.github.io/DependencyCheck/dependency-check.2.5.xsd">
+  <scanInfo>
+    <engineVersion>7.4.4</engineVersion>
+    <dataSource>
+      <name>NVD CVE Checked</name>
+      <timestamp>2023-02-24T11:06:53</timestamp>
+    </dataSource>
+    <dataSource>
+      <name>NVD CVE Modified</name>
+      <timestamp>2023-02-24T06:00:02</timestamp>
+    </dataSource>
+    <dataSource>
+      <name>VersionCheckOn</name>
+      <timestamp>2023-02-10T06:06:27</timestamp>
+    </dataSource>
+  </scanInfo>
+  <projectInfo>
+    <name>${projName}</name>
+    <reportDate>2023-02-24T11:40:42.126Z</reportDate>
+    <credits>This report contains data retrieved from the National Vulnerability Database: https://nvd.nist.gov, NPM Public Advisories: https://www.npmjs.com/advisories, and the RetireJS community.</credits>
+  </projectInfo>
+  <dependencies/>
+</analysis>

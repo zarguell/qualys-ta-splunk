@@ -41,10 +41,10 @@ jobs:
         tar -xf *.tar.gz
         rm *.tar.gz
 
-    - name: Modify Qualys Detection Populator with enhancements via sed
+    - name: Modify Qualys Detection Populator with enhancements via python
       run: |-
-        sed -i '0,/.*vuln_results_field = re.sub('\\\'\\\\s+\\\'',.*/s/.*vuln_results_field = re.sub(.*/                                    vuln_results_field = re.sub('\\\'\\\\n\\\'', '\\\'NEW_LINE_CHAR\\\'', val)\n                                    vuln_results_field = re.sub('\\\'\\\\t\\\'', '\\\'TAB_CHAR\\\'', vuln_results_field)\n                                    vuln_results_field = re.sub('\\\'\\\\s+\\\'', '\\\'\ \\\'', vuln_results_field).strip('\\\'\ \\\'')\n#&/' ./TA-QualysCloudPlatform/bin/qualysModule/splunkpopulator/detectionpopulator.py
-    
+        python ./scripts/modify_detectionpopulator.py
+
     - name: Commit and push if it changed
       run: |-
         git config user.name "Automated"

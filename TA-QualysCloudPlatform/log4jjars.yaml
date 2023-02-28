@@ -1,0 +1,15 @@
+jars:
+  - name: log4j-core
+    version: 2.17.2
+    jira: BAR-17597
+  - name: log4j-api
+    version: 2.17.2
+    jira: BAR-17597
+
+exceptions:
+  - project-name: asset-group-management-service
+    jar-name: log4j-core
+    jira: BAR-17693
+  - project-name: asset-group-management-service
+    jar-name: log4j-api
+    jira: BAR-17693

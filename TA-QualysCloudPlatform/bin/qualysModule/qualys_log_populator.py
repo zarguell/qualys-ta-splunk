@@ -15,6 +15,7 @@ import json
 import logging
 import time
 from datetime import datetime, timedelta
+import traceback
 
 from defusedxml import ElementTree as ET
 
@@ -27,6 +28,7 @@ from qualysModule.splunkpopulator.detectionpopulator import *
 from qualysModule.splunkpopulator.policypopulator import *
 from qualysModule.splunkpopulator.cspopulator import *
 from qualysModule.splunkpopulator.fimpopulator import *
+from qualysModule.splunkpopulator.assethost import *
 from qualysModule.splunkpopulator.FIMEventsFetchCoordinator import FIMEventsFetchCoordinator
 from qualysModule.splunkpopulator.FIMIncidentsFetchCoordinator import FIMIncidentsFetchCoordinator
 from qualysModule.splunkpopulator.DetectionFetchCoordinator import DetectonFetchCoordinator
@@ -426,13 +428,20 @@ class QualysDetectionPopulator(QualysBaseLogPopulator):
 					#	HostDetectionPopulator.detection_fields_to_log = self.settings.get('detection_fields')
 
 					use_multi_threading = bool_value(self.qualysConf['setupentity']['use_multi_threading'])
+					detection_configuration.use_multi_threading = use_multi_threading
 
 					total_logged = 0
 					if use_multi_threading:
 						num_threads = int(self.qualysConf['setupentity']['num_threads'])
 						if num_threads < 0 or num_threads > 10:
 							num_threads = 2
-						config = {"num_threads": num_threads, "cp_last_run_datetime": cp_last_run_datetime}
+						host_asset_params = bool_value(self.qualysConf['setupentity']['host_asset_params'])
+						detection_configuration.host_asset_params = host_asset_params
+						if host_asset_params :
+							host_api_filters= {'show_ars':1,'show_ars_factors':1}
+						else :
+							host_api_filters= {}
+						config = {"num_threads": num_threads, "cp_last_run_datetime": cp_last_run_datetime, "host_api_filters" :host_api_filters}
 						qlogger.info("Running in multi-thread mode with num_threads= %s", num_threads)
 						dfc = DetectonFetchCoordinator(config, detection_configuration, self.EVENT_WRITER)
 						dfc.coordinate()
@@ -1463,6 +1472,25 @@ class QualysPCRSPopulator(QualysBaseLogPopulator):
 			evidenceRequired= bool_value(self.qualysConf['setupentity'].get('evidenceRequired', '0'))
 			qlogger.info("Add additional field EVIDENCE? %s", evidenceRequired)
 
+			evidenceTruncationLimit= bool_value(self.qualysConf['setupentity'].get('evidencetruncationlimit', '0'))
+			qlogger.info("Truncate additional field EVIDENCE? %s", evidenceTruncationLimit)
+
+			last_scan_date_resolveHostId=bool_value(self.qualysConf['setupentity']['lastScanDateResolveHostId'])
+			qlogger.info("Add additional field Last Scan date in Resolve host Ids API? %s", last_scan_date_resolveHostId)
+
+			last_scan_date_postureAPI=bool_value(self.qualysConf['setupentity']['lastScanDatePostureAPI'])
+			qlogger.info("Add additional field Last Scan date in Posture Info Streaming API? %s",last_scan_date_postureAPI)
+
+			custom_policy_ids = self.qualysConf['setupentity']['custom_policy_ids']
+			pcrs_custom_policy_operation= self.qualysConf['setupentity']['pcrs_custom_policy_operation'].lower()
+			if custom_policy_ids == "":
+				qlogger.info("Using Policy Ids from the Policy List API Response")
+			elif custom_policy_ids != "" and pcrs_custom_policy_operation == "include" :
+				qlogger.info("Using the custom Policy Ids = %s",custom_policy_ids)
+			elif custom_policy_ids != "" and pcrs_custom_policy_operation == "exclude" :
+				qlogger.info("Excluding the custom Policy Ids = %s",custom_policy_ids)
+
+
 			pid_range = range(1, 11)
 			pcrs_num_count_for_pid = int(self.qualysConf['setupentity']['pcrs_num_count_for_pid'])
 			if pcrs_num_count_for_pid not in pid_range:
@@ -1470,19 +1498,44 @@ class QualysPCRSPopulator(QualysBaseLogPopulator):
 				pcrs_num_count_for_pid = 2
 			
 			qlogger.info("Number of Policy IDs to set in each Resolve Host Ids API call: %s", pcrs_num_count_for_pid)
+
+			hostId_batch_size = int(self.qualysConf['setupentity']['hostId_batch_size'])
+			if hostId_batch_size==0:
+				qlogger.warning("Invalid value %s set for number of POLICY IDs. Using default value 5000.", hostId_batch_size)
+				hostId_batch_size = 5000
+
+			pcrs_max_api_retry_count = int(self.qualysConf['setupentity']['pcrs_max_api_retry_count'])
+			if pcrs_max_api_retry_count == "":
+				pcrs_max_api_retry_count = 0
+			qlogger.info("Maximum retry count for API failure is set to: %s", pcrs_max_api_retry_count)
+			
+			qlogger.info("Host Ids batch size for each Posture Info Streaming API call: %s", hostId_batch_size)
 			
 			pcrs_configuration = PCRSPosturePopulatorConfiguration(pcrs_logger)
 			pcrs_configuration.host = self.HOST
-			pcrs_configuration.index = self.INDEX
+			pcrs_configuration.index = self.INDEX			
 			pcrs_configuration.evidenceRequired = evidenceRequired
 			pcrs_configuration.pcrs_num_count_for_pid= pcrs_num_count_for_pid
+			pcrs_configuration.hostId_batch_size= hostId_batch_size
+			pcrs_configuration.last_scan_date_resolveHostId=last_scan_date_resolveHostId
+			pcrs_configuration.last_scan_date_postureAPI=last_scan_date_postureAPI
+			pcrs_configuration.pcrs_custom_policy_operation=pcrs_custom_policy_operation
+			pcrs_configuration.custom_policy_ids = custom_policy_ids
+			pcrs_configuration.pcrs_max_api_retry_count = pcrs_max_api_retry_count
 			cp_last_run_datetime = self.checkpointData.get('last_run_datetime', self.STARTDATE)
+
+			if evidenceTruncationLimit:
+				pcrs_configuration.evidenceTruncationLimit = 1
+			else:
+				pcrs_configuration.evidenceTruncationLimit = 0
+			
 			qlogger.info("Pulling information about policies updated after %s", cp_last_run_datetime)
 
 			# setting date-time from where to pull the data
 			if cp_last_run_datetime:
 				pcrs_configuration.add_pcrs_posture_api_filter('status_changes_since', cp_last_run_datetime)
-
+				pcrs_configuration.checkpoint_datetime= cp_last_run_datetime
+				
 				pcrs_stream_handler = logging.StreamHandler(stream=sys.stdout)
 				pcrs_formatter = logging.Formatter("%(message)s")
 				pcrs_stream_handler.setFormatter(pcrs_formatter)
@@ -1514,7 +1567,7 @@ class QualysPCRSPopulator(QualysBaseLogPopulator):
 					self.saveCheckpoint()
 				
 		except Exception as e:
-			qlogger.exception("An error occurred while running PCRS Populator.")
+			qlogger.exception("An error occurred while running PCRS Populator. Message: %s :: %s",str(e),traceback.format_exc())
 		qlogger.info("Qualys PCRS Populator finished.")
 	# end of _run()
 # end of QualysPCRSPopulator class
